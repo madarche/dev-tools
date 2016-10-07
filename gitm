@@ -1,0 +1,60 @@
+#!/bin/sh
+
+usage() {
+    echo """
+git-multi
+
+Runs the given Git command on the direct sub-directories of current directory.
+All the sub-directories must be Git repositories.
+
+Usage:
+$ cd ~/version/project-group
+$ $0 GIT-COMMAND
+
+Examples:
+$ $0 status
+$ $0 pull
+$ $0 add package.json
+$ $0 commit
+$ $0 push
+""" 1>&2
+}
+
+checkArgs() {
+    if [ $# -lt 1 ]; then
+        usage; exit 3
+    fi
+}
+
+checkArgs $@
+git_command=$@
+
+# Store current working directory
+cwd=$(pwd)
+
+# RED=$(tput setaf 1)
+# GREEN=$(tput setaf 2)
+BOLD=$(tput bold)
+NORMAL=$(tput sgr0)
+
+for dir_path in $(find -maxdepth 1 -mindepth 1 -type d)
+do
+    # Restore current working directory
+    cd "$cwd"
+
+    # Change to the sub-directory
+    cd "$dir_path"
+    if [ ! -d '.git' ]
+    then
+        # This is not a Git repository
+        continue
+    fi
+    printf "\n"
+    printf "$BOLD"
+    printf "$(pwd)"
+    printf "$NORMAL"
+    printf "\n"
+
+    git $git_command
+    printf "\n"
+done

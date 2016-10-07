@@ -1,0 +1,85 @@
+#!/bin/sh
+
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+nvm_file_path=~/.nvm/nvm.sh
+
+usage() {
+    echo """
+npm-multi
+
+Runs the given NPM command on the direct sub-directories of current directory.
+All the sub-directories must be NPM modules.
+
+Usage:
+$ cd ~/version/project-group
+$ $0 NPM-COMMAND
+
+Examples:
+$ $0 link
+$ $0 install
+""" 1>&2
+}
+
+checkArgs() {
+    if [ $# -lt 1 ]; then
+        usage
+        exit 3
+    fi
+}
+
+checkArgs $@
+npm_command=$@
+
+if ! which npm && [ ! -r $nvm_file_path ] ; then
+    echo "This script requires either npm or nvm"
+    exit 1
+fi
+
+if [ -r $nvm_file_path ]; then
+    . $nvm_file_path
+    nvmautouse() {
+        if [ -r .nvmrc ]; then
+            nvm use
+        else
+            printf "$red"
+            printf "Using the last loaded version of Node.js"
+            printf "$normal"
+            printf "\n"
+        fi
+    }
+else
+    nvmautouse() {
+        # nvm is not present
+        return
+    }
+fi
+
+# Store current working directory
+cwd=$(pwd)
+
+for dir_path in $(find -maxdepth 1 -mindepth 1 -type d)
+do
+    # Restore current working directory
+    cd "$cwd"
+
+    # Change to the sub-directory
+    cd "$dir_path"
+    if [ ! -f 'package.json' ]
+    then
+        # This is not an NPM module
+        continue
+    fi
+    printf "\n"
+    printf "$bold"
+    printf "$(pwd)"
+    printf "$normal"
+    printf "\n"
+
+    nvmautouse
+    npm $npm_command
+    printf "\n"
+done
