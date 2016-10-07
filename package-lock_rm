@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# Deletes "package-lock.json" folders in the current directory and in the direct
+# sub-directories. This is useful when Git directories being NPM package are
+# grouped together in a project directory.
+
+# Exit on error
+set -o errexit
+
+for file_path in $(find -maxdepth 3 -type f -name package-lock.json)
+do
+    echo "Deleting $file_path"
+    rm "$file_path"
+done

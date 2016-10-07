@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Exit on error
+set -o errexit
+
+if [ ! -d ~/bin ]; then
+    echo "No ~/bin directory found, so not installing the scripts"
+    exit 3
+fi
+
+scripts="""
+gitr
+npmr
+node_modules_rm
+npmsafefreeze
+"""
+for script in $scripts
+do
+    ln -nsf $(pwd)/$script ~/bin/$script
+done

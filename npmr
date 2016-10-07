@@ -1,0 +1,94 @@
+#!/bin/sh
+
+# Exit on error
+# TODO: Re-enable Exit on error when this sourcing NVM doesn't return non-0 exit status
+# set -o errexit
+
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+nvm_file_path=~/.nvm/nvm.sh
+
+usage() {
+    echo """
+recursive npm
+
+Runs the given NPM command recursively in all the Git repositories being NPM
+modules (ie. they have a package.json file at their root) located under the
+current directory.
+
+Usage:
+$ cd ~/version/project-group
+$ $0 NPM-COMMAND
+
+Examples:
+$ $0 link
+$ $0 install
+""" 1>&2
+}
+
+checkArgs() {
+    if [ $# -lt 1 ]; then
+        usage
+        exit 3
+    fi
+}
+
+checkArgs $@
+npm_command=$@
+
+if ! which npm && [ ! -r $nvm_file_path ] ; then
+    echo "This script requires either npm or nvm"
+    exit 1
+fi
+
+if [ -r $nvm_file_path ]; then
+    . $nvm_file_path
+    nvmautouse() {
+        if [ -r .nvmrc ]; then
+            nvm use
+        else
+            printf "$red"
+            printf "Using the last loaded version of Node.js"
+            printf "$normal"
+            printf "\n"
+        fi
+    }
+else
+    nvmautouse() {
+        # nvm is not present
+        return
+    }
+fi
+
+# Store current working directory
+cwd=$(pwd)
+
+# find won't descend into .git directories, but it still does descend into git
+# repositories, looking for other .git folders. And that could be a costly
+# operation.
+for dotgit_dir_path in $(find . -name .git -type d -prune)
+do
+    # Restore current working directory for successive run
+    cd "$cwd"
+
+    # Change to the Git repository directory
+    cd "$dotgit_dir_path/.."
+    if [ ! -f 'package.json' ]
+    then
+        # This is not an NPM module
+        continue
+    fi
+    printf "\n"
+    printf "$bold"
+    printf "$(pwd)"
+    printf "$normal"
+    printf " ← npm $npm_command"
+    printf "\n"
+
+    nvmautouse
+    npm $npm_command
+    printf "\n"
+done

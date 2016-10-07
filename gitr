@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# Exit on error
+set -o errexit
+
+usage() {
+    echo """
+recursive git
+
+Runs the given Git command recursively in all the Git repositories located under
+the current directory.
+
+Usage:
+$ cd ~/version/project-group
+$ $0 GIT-COMMAND
+
+Examples:
+$ $0 status
+$ $0 pull
+$ $0 add package.json
+$ $0 commit
+$ $0 push
+""" 1>&2
+}
+
+checkArgs() {
+    if [ $# -lt 1 ]; then
+        usage; exit 3
+    fi
+}
+
+checkArgs "$@"
+
+# Store current working directory
+cwd=$(pwd)
+
+# RED=$(tput setaf 1)
+# GREEN=$(tput setaf 2)
+BOLD=$(tput bold)
+NORMAL=$(tput sgr0)
+
+# find won't descend into .git directories, but it still does descend into git
+# repositories, looking for other .git folders. And that could be a costly
+# operation.
+for dotgit_dir_path in $(find . -name .git -type d -prune)
+do
+    # Restore current working directory for successive runs
+    cd "$cwd"
+
+    # Change to the Git repository directory
+    cd "$dotgit_dir_path/.."
+    printf "\n"
+    printf "%s" "$BOLD"
+    printf "%s" "$(pwd)"
+    printf "%s" "$NORMAL"
+    printf " ← git %s" "$*"
+    printf "\n"
+
+    # Some commands like "git grep" returns with a non-zero status when nothing
+    # is found, thus the "|| true" to ensure the line is always a success.
+    git "$@" || true
+    printf "\n"
+done
