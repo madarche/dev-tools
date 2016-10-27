@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # Exit on error
-set -o errexit
+# TODO: Re-enable Exit on error when this sourcing NVM doesn't return an error
+# set -o errexit
 
 red=$(tput setaf 1)
 green=$(tput setaf 2)
