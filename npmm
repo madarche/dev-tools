@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Exit on error
+set -o errexit
+
 red=$(tput setaf 1)
 green=$(tput setaf 2)
 bold=$(tput bold)
