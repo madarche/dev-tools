@@ -58,6 +58,8 @@ do
     printf "$NORMAL"
     printf "\n"
 
-    git $git_command
+    # Some commands like "git grep" returns with a non-zero status when nothing
+    # is found, thus the "|| true" to ensure the line is always a success.
+    git $git_command || true
     printf "\n"
 done
