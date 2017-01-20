@@ -81,6 +81,7 @@ do
     printf "$bold"
     printf "$(pwd)"
     printf "$normal"
+    printf " ← npm $npm_command"
     printf "\n"
 
     nvmautouse
