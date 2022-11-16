@@ -12,7 +12,6 @@ scripts="""
 gitr
 npmr
 node_modules_rm
-npmsafefreeze
 """
 for script in $scripts
 do
